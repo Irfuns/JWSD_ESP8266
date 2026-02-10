@@ -16,7 +16,7 @@ jobs:
     - name: Setup Arduino CLI
       uses: arduino/setup-arduino-cli@v1
 
-    - name: Install ESP8266 Core (Latest)
+    - name: Install ESP8266 Core
       run: |
         arduino-cli core update-index
         arduino-cli core install esp8266:esp8266
@@ -29,12 +29,14 @@ jobs:
         arduino-cli lib install "DMDESP"
         arduino-cli lib install "NTPClient"
 
-    - name: Compile JWSD Firmware
+    - name: Compile JWSD Firmware (ESP-12F)
       run: |
         arduino-cli compile \
           --fqbn esp8266:esp8266:generic \
-          --build-property build.flash_size=4M \
-          --build-property upload.maximum_size=1044464 \
+          --build-property flash_size=4M \
+          --build-property lwip_variant=v2_low_memory \
+          --build-property cpu_freq=80 \
+          --build-property baud=115200 \
           --output-dir build \
           JWSD-ESP8266
 
@@ -42,4 +44,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: JWSD-ESP8266-BIN
-        path: build/*.bin
+        path: build/**/*.bin
