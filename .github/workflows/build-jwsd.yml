@@ -1,0 +1,45 @@
+name: Build JWSD ESP8266 Firmware
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Setup Arduino CLI
+      uses: arduino/setup-arduino-cli@v1
+
+    - name: Install ESP8266 Core (Latest)
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install esp8266:esp8266
+
+    - name: Install Required Libraries
+      run: |
+        arduino-cli lib install "ArduinoJson"
+        arduino-cli lib install "RTClib"
+        arduino-cli lib install "PrayerTimes"
+        arduino-cli lib install "DMDESP"
+        arduino-cli lib install "NTPClient"
+
+    - name: Compile JWSD Firmware
+      run: |
+        arduino-cli compile \
+          --fqbn esp8266:esp8266:generic \
+          --build-property build.flash_size=4M \
+          --build-property upload.maximum_size=1044464 \
+          --output-dir build \
+          JWSD-ESP8266
+
+    - name: Upload Firmware BIN
+      uses: actions/upload-artifact@v4
+      with:
+        name: JWSD-ESP8266-BIN
+        path: build/*.bin
